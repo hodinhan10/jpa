@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quản lý sinh viên</title>
+    <style>
+      :root {
+        --primary: #2563eb;
+        --primary-dark: #1d4ed8;
+        --danger: #dc2626;
+        --border: #dbe3ef;
+        --text: #172033;
+        --muted: #64748b;
+        --surface: #ffffff;
+        --background: #f3f6fb;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        color: var(--text);
+        background: var(--background);
+        font-family:
+          Inter,
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+      }
+
+      header {
+        padding: 36px 20px 70px;
+        color: white;
+        background: linear-gradient(135deg, #1d4ed8, #0f766e);
+      }
+
+      header div,
+      main {
+        width: min(1100px, calc(100% - 32px));
+        margin: auto;
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: clamp(28px, 4vw, 42px);
+      }
+      header p {
+        margin: 0;
+        opacity: 0.9;
+      }
+
+      main {
+        display: grid;
+        grid-template-columns: 330px 1fr;
+        gap: 24px;
+        margin-top: -42px;
+        padding-bottom: 40px;
+      }
+
+      .card {
+        padding: 24px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+      }
+
+      h2 {
+        margin: 0 0 20px;
+        font-size: 20px;
+      }
+      label {
+        display: block;
+        margin: 14px 0 6px;
+        font-weight: 600;
+      }
+
+      input {
+        width: 100%;
+        padding: 11px 12px;
+        color: var(--text);
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: 9px;
+        outline: none;
+      }
+
+      input:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px #2563eb20;
+      }
+
+      .actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+      }
+
+      button {
+        padding: 10px 14px;
+        font: inherit;
+        font-weight: 650;
+        cursor: pointer;
+        border: 0;
+        border-radius: 9px;
+      }
+
+      button:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+      }
+      .primary {
+        color: white;
+        background: var(--primary);
+      }
+      .primary:hover {
+        background: var(--primary-dark);
+      }
+      .secondary {
+        color: var(--text);
+        background: #e8eef7;
+      }
+      .edit {
+        color: #075985;
+        background: #e0f2fe;
+      }
+      .delete {
+        color: #991b1b;
+        background: #fee2e2;
+      }
+
+      .table-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+
+      .table-head h2 {
+        margin: 0;
+      }
+      .count {
+        color: var(--muted);
+        font-size: 14px;
+      }
+      .table-wrap {
+        overflow-x: auto;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th,
+      td {
+        padding: 13px 10px;
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+      }
+      th {
+        color: var(--muted);
+        font-size: 13px;
+        text-transform: uppercase;
+      }
+      td:last-child {
+        white-space: nowrap;
+      }
+      td button {
+        margin-right: 5px;
+        padding: 7px 10px;
+      }
+
+      .message {
+        display: none;
+        margin-bottom: 16px;
+        padding: 11px 13px;
+        border-radius: 9px;
+        font-size: 14px;
+      }
+
+      .message.show {
+        display: block;
+      }
+      .message.success {
+        color: #166534;
+        background: #dcfce7;
+      }
+      .message.error {
+        color: #991b1b;
+        background: #fee2e2;
+      }
+      .empty {
+        padding: 28px;
+        color: var(--muted);
+        text-align: center;
+      }
+
+      @media (max-width: 760px) {
+        main {
+          grid-template-columns: 1fr;
+        }
+        header {
+          padding-bottom: 62px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div>
+        <h1>Quản lý sinh viên</h1>
+        <p>Thêm, xem, cập nhật và xóa thông tin sinh viên.</p>
+      </div>
+    </header>
+
+    <main>
+      <section class="card">
+        <h2 id="formTitle">Thêm sinh viên</h2>
+        <div id="message" class="message" role="status"></div>
+
+        <form id="studentForm">
+          <input id="studentId" type="hidden" />
+
+          <label for="name">Họ tên</label>
+          <input
+            id="name"
+            type="text"
+            maxlength="100"
+            required
+            placeholder="Nguyễn Văn A"
+          />
+
+          <label for="email">Email</label>
+          <input
+            id="email"
+            type="email"
+            maxlength="100"
+            required
+            placeholder="a@example.com"
+          />
+
+          <label for="age">Tuổi</label>
+          <input
+            id="age"
+            type="number"
+            min="1"
+            max="120"
+            required
+            placeholder="20"
+          />
+
+          <div class="actions">
+            <button id="saveButton" class="primary" type="submit">Thêm</button>
+            <button id="cancelButton" class="secondary" type="button" hidden>
+              Hủy
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <section class="card">
+        <div class="table-head">
+          <h2>Danh sách sinh viên</h2>
+          <span id="count" class="count">0 sinh viên</span>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Họ tên</th>
+                <th>Email</th>
+                <th>Tuổi</th>
+                <th>Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="studentRows"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const API = "/api/student";
+      const form = document.querySelector("#studentForm");
+      const idInput = document.querySelector("#studentId");
+      const nameInput = document.querySelector("#name");
+      const emailInput = document.querySelector("#email");
+      const ageInput = document.querySelector("#age");
+      const rows = document.querySelector("#studentRows");
+      const count = document.querySelector("#count");
+      const message = document.querySelector("#message");
+      const formTitle = document.querySelector("#formTitle");
+      const saveButton = document.querySelector("#saveButton");
+      const cancelButton = document.querySelector("#cancelButton");
+
+      async function request(url, options = {}) {
+        const response = await fetch(url, options);
+        const text = await response.text();
+        let data = null;
+
+        if (text) {
+          try {
+            data = JSON.parse(text);
+          } catch {
+            data = text;
+          }
+        }
+
+        if (!response.ok) {
+          const detail = data?.message || data?.error || data;
+          throw new Error(detail || "Không thể xử lý yêu cầu");
+        }
+
+        return data;
+      }
+
+      function showMessage(text, type) {
+        message.textContent = text;
+        message.className = `message show ${type}`;
+        window.setTimeout(() => (message.className = "message"), 3000);
+      }
+
+      function resetForm() {
+        form.reset();
+        idInput.value = "";
+        formTitle.textContent = "Thêm sinh viên";
+        saveButton.textContent = "Thêm";
+        cancelButton.hidden = true;
+      }
+
+      function startEdit(student) {
+        idInput.value = student.id;
+        nameInput.value = student.name;
+        emailInput.value = student.email;
+        ageInput.value = student.age;
+        formTitle.textContent = "Cập nhật sinh viên";
+        saveButton.textContent = "Lưu";
+        cancelButton.hidden = false;
+        nameInput.focus();
+      }
+
+      function createCell(value) {
+        const cell = document.createElement("td");
+        cell.textContent = value;
+        return cell;
+      }
+
+      function render(students) {
+        rows.replaceChildren();
+        count.textContent = `${students.length} sinh viên`;
+
+        if (!students.length) {
+          const row = document.createElement("tr");
+          const cell = document.createElement("td");
+          cell.className = "empty";
+          cell.colSpan = 5;
+          cell.textContent = "Chưa có sinh viên nào.";
+          row.append(cell);
+          rows.append(row);
+          return;
+        }
+
+        students.forEach((student) => {
+          const row = document.createElement("tr");
+          row.append(
+            createCell(student.id),
+            createCell(student.name),
+            createCell(student.email),
+            createCell(student.age),
+          );
+
+          const actionCell = document.createElement("td");
+          const editButton = document.createElement("button");
+          editButton.className = "edit";
+          editButton.textContent = "Sửa";
+          editButton.addEventListener("click", () => startEdit(student));
+
+          const deleteButton = document.createElement("button");
+          deleteButton.className = "delete";
+          deleteButton.textContent = "Xóa";
+          deleteButton.addEventListener("click", () => removeStudent(student));
+
+          actionCell.append(editButton, deleteButton);
+          row.append(actionCell);
+          rows.append(row);
+        });
+      }
+
+      async function loadStudents() {
+        try {
+          const students = await request(API);
+          render(students || []);
+        } catch (error) {
+          showMessage(error.message, "error");
+        }
+      }
+
+      async function removeStudent(student) {
+        if (!confirm(`Xóa sinh viên "${student.name}"?`)) return;
+
+        try {
+          await request(`${API}/${student.id}`, { method: "DELETE" });
+          if (idInput.value === String(student.id)) resetForm();
+          showMessage("Đã xóa sinh viên", "success");
+          await loadStudents();
+        } catch (error) {
+          showMessage(error.message, "error");
+        }
+      }
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const id = idInput.value;
+        const student = {
+          name: nameInput.value.trim(),
+          email: emailInput.value.trim(),
+          age: Number(ageInput.value),
+        };
+
+        saveButton.disabled = true;
+        try {
+          await request(id ? `${API}/${id}` : API, {
+            method: id ? "PUT" : "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(student),
+          });
+          showMessage(
+            id ? "Đã cập nhật sinh viên" : "Đã thêm sinh viên",
+            "success",
+          );
+          resetForm();
+          await loadStudents();
+        } catch (error) {
+          showMessage(error.message, "error");
+        } finally {
+          saveButton.disabled = false;
+        }
+      });
+
+      cancelButton.addEventListener("click", resetForm);
+      loadStudents();
+    </script>
+  </body>
+</html>
